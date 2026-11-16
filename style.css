@@ -1,0 +1,379 @@
+:root {
+  --bg: #090b10;            /* biru malam — senja habis hujan */
+  --ink: #dfe3e8;
+  --dim: #6e7683;
+  --faint: #232833;
+  --chalk: #8e97a5;         /* cahaya bulan yang tidak sepenuhnya sampai */
+  --blue29: #a9c3e8;        /* goresan-goresan tanggal 29: biru es yang lebih terang */
+  --gold: #d9a066;          /* satu-satunya kehangatan: saat berdamai */
+  --serif: "EB Garamond", Georgia, "Times New Roman", serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* senja: tenang di tengah, gelap di tepi */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse at 50% 24%, rgba(142, 151, 165, .05) 0%, transparent 42%),
+    radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(2, 3, 6, .68) 100%);
+}
+
+/* grain film tua — hampir tak terlihat */
+body::after {
+  content: "";
+  position: fixed;
+  inset: -60px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 280px 280px;
+  animation: grain 1.6s steps(6) infinite;
+}
+
+@keyframes grain {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-14px, 9px); }
+  50%  { transform: translate(10px, -12px); }
+  75%  { transform: translate(-7px, -9px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* kabut yang bernapas, jauh di kejauhan dinding */
+#fog {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 60% 40% at 28% 18%, rgba(120, 140, 180, .06), transparent 70%),
+    radial-gradient(ellipse 50% 35% at 76% 78%, rgba(120, 140, 180, .05), transparent 70%);
+  animation: fog 18s ease-in-out infinite alternate;
+}
+
+@keyframes fog {
+  from { opacity: .35; transform: translateX(-1.5%); }
+  to   { opacity: 1;   transform: translateX(1.5%); }
+}
+
+main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 13vh 20px 90px;
+}
+
+/* ---------- counter ---------- */
+
+#counter { text-align: center; z-index: 3; }
+
+.kicker {
+  font-size: 14px;
+  font-style: italic;
+  letter-spacing: .38em;
+  text-indent: .38em;
+  color: var(--dim);
+}
+
+.big {
+  margin-top: 20px;
+  font-weight: 400;
+  font-size: clamp(62px, 14vw, 126px);
+  line-height: 1;
+  letter-spacing: .02em;
+  font-variant-numeric: oldstyle-nums;
+}
+
+.big .unit {
+  font-size: 16px;
+  font-style: italic;
+  letter-spacing: .3em;
+  margin-left: 16px;
+  color: var(--dim);
+}
+
+/* ditulis pelan: huruf kecil, miring, renggang */
+.detail {
+  margin-top: 18px;
+  font-size: 15px;
+  font-style: italic;
+  letter-spacing: .14em;
+  text-indent: .14em;
+  color: #767f8d;
+}
+
+/* ---------- dinding goresan ---------- */
+
+#field {
+  margin-top: 9vh;
+  width: 100%;
+  max-width: 820px;
+  z-index: 3;
+  transition: opacity 1.6s ease;
+}
+
+body.done #field { opacity: .28; }
+
+#wall {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 30px;
+  justify-content: flex-start;
+  align-items: flex-end;
+}
+
+#wall svg { display: block; overflow: visible; }
+
+path.scratch {
+  fill: none;
+  stroke: var(--chalk);
+  stroke-linecap: round;
+  transition: stroke 1.6s ease, stroke-width 1.6s ease;
+  transition-delay: calc(var(--i) * 8ms);
+}
+
+path.hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+  pointer-events: stroke;
+  cursor: default;
+}
+
+path.scratch.deep {
+  stroke: var(--blue29);
+  stroke-width: 3.1;
+  filter: drop-shadow(0 0 5px rgba(140, 175, 225, .35));
+}
+
+/* goresan samar untuk "besok" */
+g.next path.scratch { stroke: var(--chalk); stroke-opacity: .06; }
+g.next path.hit { pointer-events: none; }
+
+/* goresan baru tengah malam: tergores dengan pelan */
+path.fresh { animation: etch 4.5s ease both; }
+@keyframes etch { from { opacity: 0; } to { opacity: 1; } }
+
+/* saat berdamai: goresan biru mencair jadi emas, bergelombang */
+body.peace path.scratch,
+body.peace path.scratch.deep { stroke: var(--gold); animation: none; }
+
+body.instant path.scratch { transition: none !important; }
+
+/* ---------- hold ring ---------- */
+
+#ring {
+  position: fixed;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 60;
+}
+
+#ring circle {
+  fill: none;
+  stroke: #8e97a5;
+  stroke-opacity: .55;
+  stroke-width: 1.4;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  stroke-linecap: round;
+}
+
+#ring.on { opacity: 1; }
+#ring.on circle { transition: stroke-dashoffset 7s linear; stroke-dashoffset: 0; }
+
+/* ---------- tooltip ---------- */
+
+#tip {
+  position: fixed;
+  z-index: 50;
+  background: #10131a;
+  border: 1px solid var(--faint);
+  color: #aab1bb;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  letter-spacing: .06em;
+  padding: 6px 12px;
+  border-radius: 4px;
+  pointer-events: none;
+  transform: translate(-50%, -170%);
+  white-space: nowrap;
+}
+
+/* ---------- ritual ---------- */
+
+#veil {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 5, 9, .9);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity .9s ease;
+  padding: 24px;
+}
+
+#veil.on { opacity: 1; }
+
+#dialog { max-width: 460px; text-align: center; }
+
+#dialog .q {
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1.75;
+  color: #d6dade;
+  font-style: italic;
+  min-height: 3.6em;
+}
+
+#dialog .row {
+  margin-top: 36px;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#dialog button {
+  background: none;
+  border: 1px solid var(--faint);
+  color: #a7aeb8;
+  font-family: var(--serif);
+  font-size: 15px;
+  font-style: italic;
+  letter-spacing: .1em;
+  padding: 10px 24px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color .3s ease, color .3s ease;
+}
+
+#dialog button:hover { border-color: #3d4450; color: var(--ink); }
+#dialog button.primary { border-color: #3d4450; color: var(--ink); }
+
+#dialog input {
+  background: none;
+  border: 0;
+  border-bottom: 1px solid #3d4450;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 19px;
+  text-align: center;
+  padding: 8px 4px;
+  width: 200px;
+  outline: none;
+  letter-spacing: .3em;
+  margin-top: 30px;
+  border-radius: 0;
+}
+
+#dialog .err {
+  color: #9c6a5c;
+  font-size: 13px;
+  font-style: italic;
+  letter-spacing: .08em;
+  margin-top: 14px;
+  min-height: 1em;
+  font-family: var(--serif);
+}
+
+/* abort flash */
+
+#abort {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 90;
+  color: var(--dim);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  letter-spacing: .06em;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .8s ease;
+  padding: 24px;
+  text-align: center;
+}
+
+#abort.on { opacity: 1; }
+
+/* ---------- finale ---------- */
+
+#finale {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 80;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 2.2s ease;
+  padding: 24px;
+  text-align: center;
+}
+
+#finale.on { opacity: 1; }
+
+#finale .selamat {
+  font-family: var(--serif);
+  font-size: clamp(42px, 8vw, 76px);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: .04em;
+}
+
+#finale p:not(.selamat) {
+  margin-top: 16px;
+  color: var(--dim);
+  letter-spacing: .1em;
+  font-size: 15px;
+}
+
+#finale .damai {
+  font-family: var(--serif);
+  font-style: italic;
+  color: #b3a184;
+  font-size: 17px;
+  letter-spacing: .12em;
+  margin-top: 26px;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb { background: #181c24; border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  body::after, #fog, path.fresh { animation: none !important; }
+}
